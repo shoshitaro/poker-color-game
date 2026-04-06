@@ -24,8 +24,6 @@ const colorOptions: ColorOption[] = [
 const TOTAL_QUESTIONS = 10;
 
 function getRandomIndex(excludeIndex: number | null = null) {
-  if (questions.length === 1) return 0;
-
   let randomIndex = Math.floor(Math.random() * questions.length);
 
   while (randomIndex === excludeIndex) {
