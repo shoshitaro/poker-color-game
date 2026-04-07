@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { questions } from "../data/questions";
 
 type ColorOption = {
@@ -34,7 +34,7 @@ function getRandomIndex(excludeIndex: number | null = null) {
 }
 
 export default function Home() {
-  const [currentIndex, setCurrentIndex] = useState(() => getRandomIndex());
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [wrongSelections, setWrongSelections] = useState<string[]>([]);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -43,16 +43,20 @@ export default function Home() {
   const [questionNumber, setQuestionNumber] = useState(1);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-
-  // この問題で「最初の回答をもう済ませたか」を管理
   const [hasAnsweredOnce, setHasAnsweredOnce] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    setCurrentIndex(getRandomIndex());
+  }, []);
 
   const currentQuestion = questions[currentIndex];
   const correctColor = currentQuestion.color;
   const hasCleared = selectedColor === correctColor;
 
   const handleAnswer = (selected: string) => {
-    if (hasCleared || isFinished) return;
+    if (hasCleared || isFinished || !isMounted) return;
 
     const correct = selected === correctColor;
 
@@ -60,7 +64,6 @@ export default function Home() {
     setIsCorrect(correct);
     setEffectKey((prev) => prev + 1);
 
-    // 最初の回答だけ採点対象にする
     if (!hasAnsweredOnce) {
       setHasAnsweredOnce(true);
 
@@ -80,8 +83,7 @@ export default function Home() {
   };
 
   const handleNextQuestion = () => {
-    if (isFinished) return;
-    if (!hasCleared) return;
+    if (isFinished || !hasCleared) return;
 
     if (questionNumber >= TOTAL_QUESTIONS) {
       setIsFinished(true);
@@ -118,14 +120,17 @@ export default function Home() {
 
   if (isFinished) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-2xl border border-gray-200 p-6 shadow-sm text-center">
-          <p className="text-sm text-gray-500 mb-2">結果</p>
-          <h1 className="text-3xl font-bold mb-4">10問終了！</h1>
+      <main
+        className="min-h-screen bg-white text-black flex items-center justify-center p-6"
+        style={{ colorScheme: "light" }}
+      >
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white text-black p-6 shadow-sm text-center">
+          <p className="text-sm text-gray-700 mb-2">結果</p>
+          <h1 className="text-3xl font-bold mb-4 text-black">10問終了！</h1>
 
           <div className="rounded-2xl bg-gray-50 border border-gray-200 p-6 mb-6">
-            <p className="text-gray-600 mb-2">正解数</p>
-            <p className="text-5xl font-bold">{score} / 10</p>
+            <p className="text-gray-800 mb-2">正解数</p>
+            <p className="text-5xl font-bold text-black">{score} / 10</p>
           </div>
 
           <button
@@ -141,10 +146,13 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-screen bg-white flex items-center justify-center p-6">
+      <main
+        className="min-h-screen bg-white text-black flex items-center justify-center p-6"
+        style={{ colorScheme: "light" }}
+      >
         <div
           key={effectKey}
-          className={`relative w-full max-w-md rounded-2xl border border-gray-200 p-6 shadow-sm transition-all duration-300 ${
+          className={`relative w-full max-w-md rounded-2xl border border-gray-200 bg-white text-black p-6 shadow-sm transition-all duration-300 ${
             getCardEffectClass()
           } ${
             isCorrect === true
@@ -157,22 +165,22 @@ export default function Home() {
           }`}
         >
           <div className="flex items-center justify-between mb-6 text-sm font-medium">
-            <p className="text-gray-500">
+            <p className="text-gray-700">
               {questionNumber} / {TOTAL_QUESTIONS} 問
             </p>
-            <p className="text-gray-500">正解数: {score}</p>
+            <p className="text-gray-700">正解数: {score}</p>
           </div>
 
-          <h1 className="text-2xl font-bold text-center mb-6">
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">
             ハンド色当てゲーム
           </h1>
 
           <div className="text-center mb-6">
-            <p className="text-sm text-gray-500 mb-2">ハンド</p>
-            <p className="text-4xl font-bold">{currentQuestion.hand}</p>
+            <p className="text-sm text-gray-700 mb-2">ハンド</p>
+            <p className="text-4xl font-bold text-black">{currentQuestion.hand}</p>
           </div>
 
-          <p className="text-center mb-4">このハンドは何色？</p>
+          <p className="text-center mb-4 text-black">このハンドは何色？</p>
 
           <div className="grid grid-cols-3 gap-3 mb-6">
             {colorOptions.map((color) => {
@@ -245,7 +253,7 @@ export default function Home() {
             className={`w-full rounded-xl py-3 font-bold transition active:scale-[0.99] ${
               hasCleared
                 ? "bg-black text-white hover:opacity-90"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-gray-200 text-gray-500 cursor-not-allowed"
             }`}
           >
             {questionNumber === TOTAL_QUESTIONS ? "結果を見る" : "次の問題"}
